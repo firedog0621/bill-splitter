@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>聚餐分帳小幫手</title>
+  <style>
+    /* =========================================
+       全域變數與基礎樣式（清爽薄荷綠 + 暖橘點綴）
+       ========================================= */
+    :root {
+      --bg-page: #f3f7f5;
+      --bg-card: #ffffff;
+      --bg-soft: #f8faf9;
+      --primary: #10b981;        /* 薄荷綠主色 */
+      --primary-dark: #059669;
+      --primary-light: #ecfdf5;
+      --accent: #f97316;         /* 暖橘色重點色 */
+      --accent-dark: #ea580c;
+      --accent-light: #fff7ed;
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --danger-light: #fef2f2;
+      --text-main: #1f2937;
+      --text-sub: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 4px 16px rgba(16, 24, 40, 0.06);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+        "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 20px 14px 64px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    /* =========================================
+       頂部標頭區
+       ========================================= */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .header-title h1 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-title p {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* =========================================
+       版面配置：電腦雙欄、手機單欄
+       ========================================= */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    @media (min-width: 860px) {
+      .grid-layout {
+        grid-template-columns: 1fr 1.08fr;
+        gap: 22px;
+      }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* =========================================
+       卡片與區塊標題
+       ========================================= */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(229, 231, 235, 0.75);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .badge-orange {
+      background: var(--accent-light);
+      color: var(--accent-dark);
+    }
+
+    /* =========================================
+       表單元素與按鈕（加大觸控區適合手機）
+       ========================================= */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label.field-label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 13px;
+      font-size: 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--text-main);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, background-color 0.2s, box-shadow 0.2s;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-dark);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text-main);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-soft);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-dark);
+    }
+
+    .btn-danger-soft {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .btn-danger-soft:hover {
+      background: #fee2e2;
+    }
+
+    .btn-sm {
+      min-height: 36px;
+      padding: 6px 12px;
+      font-size: 0.84rem;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* =========================================
+       成員管理區
+       ========================================= */
+    .member-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .member-input-row input {
+      flex: 1;
+    }
+
+    .member-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .member-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px 6px 13px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 999px;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .member-remove-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(5, 150, 105, 0.15);
+      color: var(--primary-dark);
+      font-size: 0.9rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .member-remove-btn:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* =========================================
+       分攤成員勾選區 & 10% 服務費開關
+       ========================================= */
+    .sharer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .sharer-quick-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--primary-dark);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .link-btn:hover {
+      background: var(--primary-light);
+    }
+
+    .sharer-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sharer-pill {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .sharer-pill input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .sharer-pill span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 40px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .sharer-pill input:checked + span {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary-dark);
+    }
+
+    .service-fee-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 48px;
+      padding: 11px 14px;
+      background: var(--accent-light);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .service-fee-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: #9a3412;
+    }
+
+    .service-fee-left input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .fee-preview {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--accent-dark);
+      white-space: nowrap;
+    }
+
+    /* =========================================
+       總覽數據卡
+       ========================================= */
+    .summary-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .stat-value.highlight {
+      color: var(--primary-dark);
+    }
+
+    /* =========================================
+       最少轉帳建議清單
+       ========================================= */
+    .transfer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .transfer-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 15px;
+      background: linear-gradient(90deg, #fff7ed 0%, #ffffff 100%);
+      border: 1.5px solid #fed7aa;
+      border-radius: var(--radius-sm);
+    }
+
+    .transfer-who {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+
+    .arrow-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .transfer-amount {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--accent-dark);
+      white-space: nowrap;
+    }
+
+    /* =========================================
+       個人結算表格
+       ========================================= */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+
+    th {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      font-weight: 700;
+      background: var(--bg-soft);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .net-positive {
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .net-negative {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .net-zero {
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    /* =========================================
+       消費明細清單
+       ========================================= */
+    .expense-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .expense-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 14px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .expense-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .expense-top {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .expense-name {
+      font-weight: 700;
+      font-size: 0.98rem;
+      word-break: break-word;
+    }
+
+    .fee-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--accent-light);
+      color: var(--accent-dark);
+    }
+
+    .expense-meta {
+      font-size: 0.83rem;
+      color: var(--text-sub);
+      line-height: 1.45;
+    }
+
+    .expense-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .expense-amount {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 26px 14px;
+      color: var(--text-sub);
+      font-size: 0.92rem;
+      background: var(--bg-soft);
+      border-radius: var(--radius-sm);
+      border: 1.5px dashed var(--border);
+    }
+
+    /* =========================================
+       自訂清空確認視窗（Modal）
+       ========================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-dialog {
+      width: 100%;
+      max-width: 380px;
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+      transform: translateY(10px) scale(0.98);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-backdrop.show .modal-dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-title {
+      font-size: 1.12rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .modal-desc {
+      font-size: 0.92rem;
+      color: var(--text-sub);
+      margin-bottom: 18px;
+      line-height: 1.55;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* =========================================
+       Toast 提示訊息
+       ========================================= */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%) translateY(20px);
+      background: #111827;
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 1001;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 頁首 -->
+    <header class="header">
+      <div class="header-title">
+        <h1>🍽️ 聚餐分帳小幫手</h1>
+        <p>吃喝玩樂安心點，誰該給誰一鍵算到好！</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="resetAllBtn" class="btn btn-danger-soft btn-sm">
+          🗑️ 清空全部資料
+        </button>
+      </div>
+    </header>
+
+    <main class="grid-layout">
+      <!-- 左欄：成員管理 + 新增消費 -->
+      <div class="column">
+        <!-- 1. 成員管理 -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">👥 聚餐成員</h2>
+            <span class="badge" id="memberCountBadge">0 人</span>
+          </div>
+
+          <div class="member-input-row">
+            <input
+              type="text"
+              id="newMemberInput"
+              placeholder="輸入朋友名字（例如：阿明）"
+              maxlength="20"
+              autocomplete="off"
+            />
+            <button type="button" id="addMemberBtn" class="btn btn-primary">
+              ＋ 新增
+            </button>
+          </div>
+
+          <div id="memberTags" class="member-tags"></div>
+        </section>
+
+        <!-- 2. 新增消費項目 -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">🧾 新增消費項目</h2>
+          </div>
+
+          <form id="expenseForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="field-label" for="itemName">項目名稱</label>
+                <input
+                  type="text"
+                  id="itemName"
+                  placeholder="例：熱炒、啤酒、計程車"
+                  maxlength="40"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="field-label" for="itemAmount">金額（整數）</label>
+                <input
+                  type="number"
+                  id="itemAmount"
+                  placeholder="例：1200"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label" for="payerSelect">誰先墊錢？</label>
+              <select id="payerSelect" required></select>
+            </div>
+
+            <div class="form-group">
+              <div class="sharer-header">
+                <label class="field-label" style="margin-bottom: 0;">分攤這筆錢的人</label>
+                <div class="sharer-quick-btns">
+                  <button type="button" id="selectAllSharersBtn" class="link-btn">全選</button>
+                  <button type="button" id="deselectAllSharersBtn" class="link-btn">全取消</button>
+                </div>
+              </div>
+              <div id="sharerCheckboxes" class="sharer-grid"></div>
+            </div>
+
+            <label class="service-fee-box" for="serviceFeeCheck">
+              <span class="service-fee-left">
+                <input type="checkbox" id="serviceFeeCheck" />
+                <span>加收 10% 服務費（× 1.1）</span>
+              </span>
+              <span id="feePreview" class="fee-preview"></span>
+            </label>
+
+            <button type="submit" class="btn btn-primary btn-full">
+              ✨ 加入消費明細
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <!-- 右欄：結算結果 + 消費明細 -->
+      <div class="column">
+        <!-- 3. 結算與最少轉帳 -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">💸 結算結果</h2>
+            <span class="badge badge-orange" id="transferCountBadge">0 筆轉帳</span>
+          </div>
+
+          <div class="summary-strip">
+            <div class="stat-box">
+              <div class="stat-label">聚餐總花費</div>
+              <div class="stat-value highlight" id="totalSpendDisplay">$0</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">平均每人（參考）</div>
+              <div class="stat-value" id="avgSpendDisplay">$0</div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 10px;">
+            ⚡ 最少轉帳建議
+          </h3>
+          <div id="transferList" class="transfer-list"></div>
+
+          <button type="button" id="copyLineBtn" class="btn btn-accent btn-full" style="margin-bottom: 18px;">
+            📋 一鍵複製 LINE 催款清單
+          </button>
+
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;">
+            📊 個人帳務明細（多退少補）
+          </h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>成員</th>
+                  <th>總墊付</th>
+                  <th>應付金額</th>
+                  <th>最終淨額</th>
+                </tr>
+              </thead>
+              <tbody id="balanceTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 4. 已新增的消費明細 -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">📝 消費明細</h2>
+            <span class="badge" id="expenseCountBadge">0 筆</span>
+          </div>
+          <div id="expenseList" class="expense-list"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- 自訂清空確認視窗 -->
+  <div id="confirmModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-dialog">
+      <div id="modalTitle" class="modal-title">🗑️ 確定要清空全部資料嗎？</div>
+      <p class="modal-desc">
+        清空後將移除目前所有成員與消費明細，且無法復原喔！
+      </p>
+      <div class="modal-actions">
+        <button type="button" id="cancelResetBtn" class="btn btn-outline">取消</button>
+        <button type="button" id="confirmResetBtn" class="btn btn-danger">確定清空</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部浮動提示 -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* =========================================
+         常數與狀態管理（搭配 localStorage 自動暫存）
+         ========================================= */
+      const STORAGE_KEY = "dining_bill_splitter_v1";
+      const DEFAULT_MEMBERS = ["阿明", "小美", "阿豪"];
+
+      let state = {
+        members: [],
+        expenses: []
+      };
+
+      // DOM 元素參照
+      const el = {
+        newMemberInput: document.getElementById("newMemberInput"),
+        addMemberBtn: document.getElementById("addMemberBtn"),
+        memberTags: document.getElementById("memberTags"),
+        memberCountBadge: document.getElementById("memberCountBadge"),
+
+        expenseForm: document.getElementById("expenseForm"),
+        itemName: document.getElementById("itemName"),
+        itemAmount: document.getElementById("itemAmount"),
+        payerSelect: document.getElementById("payerSelect"),
+        sharerCheckboxes: document.getElementById("sharerCheckboxes"),
+        selectAllSharersBtn: document.getElementById("selectAllSharersBtn"),
+        deselectAllSharersBtn: document.getElementById("deselectAllSharersBtn"),
+        serviceFeeCheck: document.getElementById("serviceFeeCheck"),
+        feePreview: document.getElementById("feePreview"),
+
+        totalSpendDisplay: document.getElementById("totalSpendDisplay"),
+        avgSpendDisplay: document.getElementById("avgSpendDisplay"),
+        transferCountBadge: document.getElementById("transferCountBadge"),
+        transferList: document.getElementById("transferList"),
+        balanceTableBody: document.getElementById("balanceTableBody"),
+        copyLineBtn: document.getElementById("copyLineBtn"),
+
+        expenseCountBadge: document.getElementById("expenseCountBadge"),
+        expenseList: document.getElementById("expenseList"),
+        resetAllBtn: document.getElementById("resetAllBtn"),
+
+        confirmModal: document.getElementById("confirmModal"),
+        cancelResetBtn: document.getElementById("cancelResetBtn"),
+        confirmResetBtn: document.getElementById("confirmResetBtn"),
+        toast: document.getElementById("toast")
+      };
+
+      let toastTimer = null;
+
+      /* =========================================
+         工具函式：千分位格式化、防 XSS、Toast
+         ========================================= */
+      function formatInt(num) {
+        return Math.round(num).toLocaleString("zh-TW");
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function showToast(message) {
+        el.toast.textContent = message;
+        el.toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.toast.classList.remove("show");
+        }, 2300);
+      }
+
+      /* =========================================
+         localStorage 讀取與儲存
+         ========================================= */
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw === null) {
+            // 首次開啟網頁時，載入預設 3 位範例成員方便測試
+            state = {
+              members: [...DEFAULT_MEMBERS],
+              expenses: []
+            };
+            saveState();
+            return;
+          }
+          const parsed = JSON.parse(raw);
+          state.members = Array.isArray(parsed.members) ? parsed.members : [];
+          state.expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
+        } catch (err) {
+          state = {
+            members: [...DEFAULT_MEMBERS],
+            expenses: []
+          };
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (err) {
+          // 忽略無痕模式或儲存空間受限錯誤
+        }
+      }
+
+      /* =========================================
+         核心計算邏輯：
+         1. 計算每個人的總墊付、應付總額、最終淨額
+         2. 實作「最少轉帳次數」演算法
+         ========================================= */
+      function calculateSettlement() {
+        // 建立每位成員的帳務結構（使用浮點數累加避免中途提早四捨五入造成誤差）
+        const ledger = {};
+        state.members.forEach((name) => {
+          ledger[name] = {
+            name,
+            paid: 0, // 總墊付金額
+            owed: 0, // 應付總金額
+            net: 0   // 最終淨額（正數 = 應收錢，負數 = 應付錢）
+          };
+        });
+
+        let totalSpend = 0;
+
+        // 逐筆計算每項消費的墊付與分攤金額
+        state.expenses.forEach((exp) => {
+          // 若有勾選 10% 服務費，該筆金額乘以 1.1
+          const finalAmount = exp.hasServiceFee
+            ? Number((exp.baseAmount * 1.1).toFixed(2))
+            : exp.baseAmount;
+
+          totalSpend += finalAmount;
+
+          // 累加先墊錢者的墊付金額
+          if (ledger[exp.payer]) {
+            ledger[exp.payer].paid += finalAmount;
+          }
+
+          // 將該筆金額平均分攤給有勾選的成員
+          const validSharers = exp.sharers.filter((name) => Boolean(ledger[name]));
+          if (validSharers.length > 0) {
+            const sharePerPerson = finalAmount / validSharers.length;
+            validSharers.forEach((name) => {
+              ledger[name].owed += sharePerPerson;
+            });
+          }
+        });
+
+        // 計算每個人的最終淨額：淨額 = 總墊付 - 應付總金額
+        const balances = state.members.map((name) => {
+          const item = ledger[name];
+          item.net = item.paid - item.owed;
+          return item;
+        });
+
+        // 計算最少轉帳清單
+        const transfers = computeMinTransfers(balances);
+
+        return {
+          totalSpend,
+          balances,
+          transfers
+        };
+      }
+
+      /**
+       * 最少轉帳次數演算法（精準配對優化 + 貪婪演算法）
+       * 概念：
+       * 1. 將淨額分成「債權人（應收錢，net > 0）」與「債務人（應付錢，net < 0）」兩組。
+       * 2. 優先檢查是否有金額剛好相等（誤差 < 0.5 元）的債權人與債務人，直接兩兩抵銷，有效壓低轉帳筆數。
+       * 3. 剩餘款項則每次取出「欠最多錢的人」與「應收最多錢的人」進行轉帳，直到所有餘額歸零。
+       * 4. 最後將每筆轉帳金額四捨五入取整數，並過濾掉 0 元紀錄。
+       */
+      function computeMinTransfers(balances) {
+        const EPSILON = 0.5; // 低於 0.5 元四捨五入後為 0，視為已結清
+
+        const creditors = []; // 應收錢的人
+        const debtors = [];   // 應付錢的人
+
+        balances.forEach((b) => {
+          if (b.net > EPSILON) {
+            creditors.push({ name: b.name, amount: b.net });
+          } else if (b.net < -EPSILON) {
+            debtors.push({ name: b.name, amount: Math.abs(b.net) });
+          }
+        });
+
+        const transfers = [];
+
+        // 第一階段：優先找出金額幾乎完全相等的債務人與債權人，一對一直接結清
+        for (let i = debtors.length - 1; i >= 0; i--) {
+          const matchIdx = creditors.findIndex(
+            (c) => Math.abs(c.amount - debtors[i].amount) < EPSILON
+          );
+          if (matchIdx !== -1) {
+            const roundedAmount = Math.round(
+              (debtors[i].amount + creditors[matchIdx].amount) / 2
+            );
+            if (roundedAmount > 0) {
+              transfers.push({
+                from: debtors[i].name,
+                to: creditors[matchIdx].name,
+                amount: roundedAmount
+              });
+            }
+            debtors.splice(i, 1);
+            creditors.splice(matchIdx, 1);
+          }
+        }
+
+        // 第二階段：貪婪配對（每次讓最大欠款人轉給最大收款人）
+        while (debtors.length > 0 && creditors.length > 0) {
+          // 依剩餘金額由大到小排序
+          debtors.sort((a, b) => b.amount - a.amount);
+          creditors.sort((a, b) => b.amount - a.amount);
+
+          const topDebtor = debtors[0];
+          const topCreditor = creditors[0];
+
+          // 本次轉帳金額取兩者較小值
+          const settleAmount = Math.min(topDebtor.amount, topCreditor.amount);
+          const roundedAmount = Math.round(settleAmount);
+
+          if (roundedAmount > 0) {
+            transfers.push({
+              from: topDebtor.name,
+              to: topCreditor.name,
+              amount: roundedAmount
+            });
+          }
+
+          // 扣除已結清金額
+          topDebtor.amount -= settleAmount;
+          topCreditor.amount -= settleAmount;
+
+          // 移除已結清（剩餘金額小於 0.5 元）的對象
+          if (topDebtor.amount < EPSILON) {
+            debtors.shift();
+          }
+          if (topCreditor.amount < EPSILON) {
+            creditors.shift();
+          }
+        }
+
+        return transfers;
+      }
+
+      /* =========================================
+         畫面渲染函式
+         ========================================= */
+      function renderAll(preserveSharerSelection = false) {
+        renderMembers();
+        renderFormControls(preserveSharerSelection);
+        renderSettlement();
+        renderExpenses();
+        updateServiceFeePreview();
+      }
+
+      function renderMembers() {
+        el.memberCountBadge.textContent = `${state.members.length} 人`;
+
+        if (state.members.length === 0) {
+          el.memberTags.innerHTML =
+            '<div class="empty-state" style="width:100%;">尚未新增任何成員，請在上方輸入朋友名字！</div>';
+          return;
+        }
+
+        el.memberTags.innerHTML = state.members
+          .map(
+            (name) => `
+            <span class="member-tag">
+              ${escapeHtml(name)}
+              <button
+                type="button"
+                class="member-remove-btn"
+                data-remove-member="${escapeHtml(name)}"
+                title="移除 ${escapeHtml(name)}"
+                aria-label="移除 ${escapeHtml(name)}"
+              >×</button>
+            </span>
+          `
+          )
+          .join("");
+      }
+
+      function renderFormControls(preserveSelection) {
+        const prevPayer = el.payerSelect.value;
+        const prevChecked = new Set(
+          Array.from(el.sharerCheckboxes.querySelectorAll('input[type="checkbox"]:checked')).map(
+            (input) => input.value
+          )
+        );
+        const prevAllRendered = new Set(
+          Array.from(el.sharerCheckboxes.querySelectorAll('input[type="checkbox"]')).map(
+            (input) => input.value
+          )
+        );
+
+        // 渲染「先墊錢的人」下拉選單
+        if (state.members.length === 0) {
+          el.payerSelect.innerHTML = '<option value="">請先新增成員</option>';
+          el.payerSelect.disabled = true;
+        } else {
+          el.payerSelect.disabled = false;
+          el.payerSelect.innerHTML = state.members
+            .map(
+              (name) =>
+                `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`
+            )
+            .join("");
+
+          if (state.members.includes(prevPayer)) {
+            el.payerSelect.value = prevPayer;
+          }
+        }
+
+        // 渲染「分攤這筆錢的人」勾選按鈕（預設全選；新加入的成員也預設勾選）
+        if (state.members.length === 0) {
+          el.sharerCheckboxes.innerHTML =
+            '<span style="font-size:0.86rem;color:var(--text-sub);">新增成員後即可勾選分攤對象</span>';
+          return;
+        }
+
+        el.sharerCheckboxes.innerHTML = state.members
+          .map((name) => {
+            const isChecked = preserveSelection
+              ? prevAllRendered.has(name)
+                ? prevChecked.has(name)
+                : true
+              : true;
+            return `
+              <label class="sharer-pill">
+                <input
+                  type="checkbox"
+                  name="sharer"
+                  value="${escapeHtml(name)}"
+                  ${isChecked ? "checked" : ""}
+                />
+                <span>${escapeHtml(name)}</span>
+              </label>
+            `;
+          })
+          .join("");
+      }
+
+      function renderSettlement() {
+        const { totalSpend, balances, transfers } = calculateSettlement();
+
+        el.totalSpendDisplay.textContent = `$${formatInt(totalSpend)}`;
+        const avg = state.members.length > 0 ? totalSpend / state.members.length : 0;
+        el.avgSpendDisplay.textContent = `$${formatInt(avg)}`;
+        el.transferCountBadge.textContent = `${transfers.length} 筆轉帳`;
+
+        // 渲染最少轉帳清單
+        if (state.expenses.length === 0) {
+          el.transferList.innerHTML =
+            '<div class="empty-state">新增消費項目後，系統會自動算出最省事的轉帳方式！</div>';
+        } else if (transfers.length === 0) {
+          el.transferList.innerHTML =
+            '<div class="empty-state" style="border-color:#a7f3d0;background:#ecfdf5;color:#065f46;font-weight:600;">🎉 大家帳目剛好打平，不需要互相轉帳喔！</div>';
+        } else {
+          el.transferList.innerHTML = transfers
+            .map(
+              (t) => `
+              <div class="transfer-item">
+                <div class="transfer-who">
+                  <span>${escapeHtml(t.from)}</span>
+                  <span class="arrow-badge">給 ➜</span>
+                  <span>${escapeHtml(t.to)}</span>
+                </div>
+                <div class="transfer-amount">$${formatInt(t.amount)}</div>
+              </div>
+            `
+            )
+            .join("");
+        }
+
+        // 渲染個人帳務總表
+        if (balances.length === 0) {
+          el.balanceTableBody.innerHTML =
+            '<tr><td colspan="4" style="text-align:center;color:var(--text-sub);padding:16px;">目前沒有成員資料</td></tr>';
+          return;
+        }
+
+        el.balanceTableBody.innerHTML = balances
+          .map((b) => {
+            const roundedNet = Math.round(b.net);
+            let netClass = "net-zero";
+            let netText = "$0";
+            if (roundedNet > 0) {
+              netClass = "net-positive";
+              netText = `+$${formatInt(roundedNet)}`;
+            } else if (roundedNet < 0) {
+              netClass = "net-negative";
+              netText = `-$${formatInt(Math.abs(roundedNet))}`;
+            }
+
+            return `
+              <tr>
+                <td><strong>${escapeHtml(b.name)}</strong></td>
+                <td>$${formatInt(b.paid)}</td>
+                <td>$${formatInt(b.owed)}</td>
+                <td class="${netClass}">${netText}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function renderExpenses() {
+        el.expenseCountBadge.textContent = `${state.expenses.length} 筆`;
+
+        if (state.expenses.length === 0) {
+          el.expenseList.innerHTML =
+            '<div class="empty-state">還沒有任何消費紀錄，快記下第一筆吧！</div>';
+          return;
+        }
+
+        // 讓最新新增的消費顯示在最上面
+        const reversed = [...state.expenses].reverse();
+        el.expenseList.innerHTML = reversed
+          .map((exp) => {
+            const finalAmount = exp.hasServiceFee
+              ? Number((exp.baseAmount * 1.1).toFixed(2))
+              : exp.baseAmount;
+            const feeBadge = exp.hasServiceFee
+              ? `<span class="fee-tag">含10%服務費（原 $${formatInt(exp.baseAmount)}）</span>`
+              : "";
+            const sharerText =
+              exp.sharers.length === state.members.length
+                ? `全員分攤（${exp.sharers.length} 人）`
+                : `分攤：${exp.sharers.map(escapeHtml).join("、")}（${exp.sharers.length} 人）`;
+
+            return `
+              <div class="expense-item">
+                <div class="expense-info">
+                  <div class="expense-top">
+                    <span class="expense-name">${escapeHtml(exp.name)}</span>
+                    ${feeBadge}
+                  </div>
+                  <div class="expense-meta">
+                    <div>💳 先墊：<strong>${escapeHtml(exp.payer)}</strong></div>
+                    <div>👥 ${sharerText}</div>
+                  </div>
+                </div>
+                <div class="expense-right">
+                  <div class="expense-amount">$${formatInt(finalAmount)}</div>
+                  <button
+                    type="button"
+                    class="btn btn-danger-soft btn-sm"
+                    data-delete-expense="${escapeHtml(exp.id)}"
+                  >刪除</button>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function updateServiceFeePreview() {
+        const rawVal = Number(el.itemAmount.value);
+        if (el.serviceFeeCheck.checked && Number.isInteger(rawVal) && rawVal > 0) {
+          const withFee = rawVal * 1.1;
+          el.feePreview.textContent = `計算後：$${formatInt(withFee)}`;
+        } else {
+          el.feePreview.textContent = "";
+        }
+      }
+
+      /* =========================================
+         事件處理：成員新增 / 刪除
+         ========================================= */
+      function handleAddMember() {
+        const name = el.newMemberInput.value.trim();
+        if (!name) {
+          showToast("請先輸入成員名字喔！");
+          el.newMemberInput.focus();
+          return;
+        }
+        if (state.members.includes(name)) {
+          showToast(`「${name}」已經在名單裡囉！`);
+          el.newMemberInput.select();
+          return;
+        }
+
+        state.members.push(name);
+        saveState();
+        el.newMemberInput.value = "";
+        renderAll(true);
+        showToast(`已加入成員「${name}」🎉`);
+      }
+
+      function handleRemoveMember(name) {
+        const hasRelatedExpense = state.expenses.some(
+          (exp) => exp.payer === name || exp.sharers.includes(name)
+        );
+        if (hasRelatedExpense) {
+          showToast(`「${name}」還有相關消費明細，請先刪除該筆消費再移除成員！`);
+          return;
+        }
+
+        state.members = state.members.filter((m) => m !== name);
+        saveState();
+        renderAll(true);
+        showToast(`已移除成員「${name}」`);
+      }
+
+      /* =========================================
+         事件處理：新增 / 刪除消費項目
+         ========================================= */
+      function handleAddExpense(e) {
+        e.preventDefault();
+
+        if (state.members.length === 0) {
+          showToast("請先新增至少一位成員！");
+          return;
+        }
+
+        const name = el.itemName.value.trim();
+        const amountRaw = el.itemAmount.value.trim();
+        const baseAmount = Number(amountRaw);
+        const payer = el.payerSelect.value;
+        const sharers = Array.from(
+          el.sharerCheckboxes.querySelectorAll('input[type="checkbox"]:checked')
+        ).map((input) => input.value);
+        const hasServiceFee = el.serviceFeeCheck.checked;
+
+        if (!name) {
+          showToast("請輸入消費項目名稱（例：熱炒、計程車）！");
+          el.itemName.focus();
+          return;
+        }
+        if (!amountRaw || !Number.isInteger(baseAmount) || baseAmount <= 0) {
+          showToast("金額請輸入大於 0 的正整數！");
+          el.itemAmount.focus();
+          return;
+        }
+        if (!payer) {
+          showToast("請選擇先墊錢的人！");
+          return;
+        }
+        if (sharers.length === 0) {
+          showToast("至少要勾選 1 位分攤這筆錢的人！");
+          return;
+        }
+
+        state.expenses.push({
+          id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          name,
+          baseAmount,
+          payer,
+          sharers,
+          hasServiceFee
+        });
+
+        saveState();
+
+        // 新增後自動清空輸入框並重置服務費勾選，方便接著輸入下一筆
+        el.itemName.value = "";
+        el.itemAmount.value = "";
+        el.serviceFeeCheck.checked = false;
+        renderAll(false); // 分攤人員自動恢復全選
+        el.itemName.focus();
+        showToast(`已新增「${name}」！`);
+      }
+
+      function handleDeleteExpense(id) {
+        state.expenses = state.expenses.filter((exp) => exp.id !== id);
+        saveState();
+        renderAll(true);
+        showToast("已刪除該筆消費明細");
+      }
+
+      /* =========================================
+         一鍵複製 LINE 催款清單（含相容剪貼簿備援）
+         ========================================= */
+      function buildLineSummaryText() {
+        const { totalSpend, transfers } = calculateSettlement();
+        const lines = [
+          "🍽️ 聚餐分帳結算清單",
+          "━━━━━━━━━━━━━━",
+          `💰 總花費：$${formatInt(totalSpend)}（共 ${state.expenses.length} 筆）`,
+          "",
+          "📝 消費明細："
+        ];
+
+        state.expenses.forEach((exp, idx) => {
+          const finalAmount = exp.hasServiceFee
+            ? Number((exp.baseAmount * 1.1).toFixed(2))
+            : exp.baseAmount;
+          const feeNote = exp.hasServiceFee ? " (含10%)" : "";
+          const shareNote =
+            exp.sharers.length === state.members.length
+              ? `全員${exp.sharers.length}人分攤`
+              : `${exp.sharers.join("、")}分攤`;
+          lines.push(
+            `${idx + 1}. ${exp.name} $${formatInt(finalAmount)}${feeNote}｜${exp.payer}先墊（${shareNote}）`
+          );
+        });
+
+        lines.push("");
+        lines.push("💸 轉帳結算（最少轉帳）：");
+
+        if (transfers.length === 0) {
+          lines.push("🎉 大家剛好打平，不用互轉喔！");
+        } else {
+          transfers.forEach((t) => {
+            lines.push(`👉 ${t.from} ➡️ ${t.to}：$${formatInt(t.amount)}`);
+          });
+        }
+
+        lines.push("");
+        lines.push("🙏 確認沒問題就可以轉帳囉，感謝大家！");
+        return lines.join("\n");
+      }
+
+      async function handleCopyLineText() {
+        if (state.expenses.length === 0) {
+          showToast("目前還沒有消費明細可以複製喔！");
+          return;
+        }
+
+        const text = buildLineSummaryText();
+        let copied = false;
+
+        // 優先使用現代 Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(text);
+            copied = true;
+          } catch (err) {
+            copied = false;
+          }
+        }
+
+        // 若直接用本機 file:// 開啟導致 Clipboard API 受限，自動改用傳統備援方式
+        if (!copied) {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.style.position = "fixed";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            copied = document.execCommand("copy");
+          } catch (err) {
+            copied = false;
+          }
+          document.body.removeChild(textarea);
+        }
+
+        if (copied) {
+          const originalLabel = el.copyLineBtn.textContent;
+          el.copyLineBtn.textContent = "✅ 已複製！快貼到 LINE 群組吧";
+          showToast("已複製！");
+          setTimeout(() => {
+            el.copyLineBtn.textContent = originalLabel;
+          }, 2000);
+        } else {
+          showToast("複製失敗，請確認瀏覽器剪貼簿權限");
+        }
+      }
+
+      /* =========================================
+         清空全部資料（自訂確認視窗）
+         ========================================= */
+      function openResetModal() {
+        if (state.members.length === 0 && state.expenses.length === 0) {
+          showToast("目前已經是空的囉！");
+          return;
+        }
+        el.confirmModal.classList.add("show");
+      }
+
+      function closeResetModal() {
+        el.confirmModal.classList.remove("show");
+      }
+
+      function executeResetAll() {
+        state = {
+          members: [],
+          expenses: []
+        };
+        saveState();
+        el.itemName.value = "";
+        el.itemAmount.value = "";
+        el.serviceFeeCheck.checked = false;
+        closeResetModal();
+        renderAll(false);
+        showToast("已清空全部資料 ✨");
+      }
+
+      /* =========================================
+         事件綁定與初始化
+         ========================================= */
+      el.addMemberBtn.addEventListener("click", handleAddMember);
+      el.newMemberInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleAddMember();
+        }
+      });
+
+      el.memberTags.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-remove-member]");
+        if (btn) {
+          handleRemoveMember(btn.getAttribute("data-remove-member"));
+        }
+      });
+
+      el.selectAllSharersBtn.addEventListener("click", () => {
+        el.sharerCheckboxes
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((cb) => (cb.checked = true));
+      });
+
+      el.deselectAllSharersBtn.addEventListener("click", () => {
+        el.sharerCheckboxes
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((cb) => (cb.checked = false));
+      });
+
+      el.itemAmount.addEventListener("input", updateServiceFeePreview);
+      el.serviceFeeCheck.addEventListener("change", updateServiceFeePreview);
+
+      el.expenseForm.addEventListener("submit", handleAddExpense);
+
+      el.expenseList.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-delete-expense]");
+        if (btn) {
+          handleDeleteExpense(btn.getAttribute("data-delete-expense"));
+        }
+      });
+
+      el.copyLineBtn.addEventListener("click", handleCopyLineText);
+      el.resetAllBtn.addEventListener("click", openResetModal);
+      el.cancelResetBtn.addEventListener("click", closeResetModal);
+      el.confirmResetBtn.addEventListener("click", executeResetAll);
+      el.confirmModal.addEventListener("click", (e) => {
+        if (e.target === el.confirmModal) {
+          closeResetModal();
+        }
+      });
+
+      // 啟動初始化
+      loadState();
+      renderAll(false);
+    })();
+  </script>
+</body>
+</html>
